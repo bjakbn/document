@@ -1,5 +1,5 @@
 
 <!-- 文件位置：document/app/src/main/res/values/strings.xml -->
 <resources>
-    <string name="app_name">DocTree</string>
+    <string name="app_name">文件树构建</string>
 </resources>
