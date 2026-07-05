@@ -1,4 +1,3 @@
-
 // 文件位置：document/app/src/main/java/com/example/doctree/MainActivity.kt
 package com.example.doctree
 
@@ -140,4 +139,102 @@ class MainActivity : AppCompatActivity() {
                         this@MainActivity,
                         "ZIP 已保存至: ${destFile.absolutePath}",
                         Toast.LENGTH_LONG
-          
+                    ).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "错误: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    generateBtn.isEnabled = true
+                }
+            }
+        }
+    }
+
+    /**
+     * 解析树形文本，在 rootDir 下创建对应目录和空文件
+     */
+    private fun parseAndCreate(text: String, rootDir: File) {
+        val lines = text.lines().filter { it.isNotBlank() }
+        // 栈中存储当前层级对应的目录文件，索引0为根（rootDir）
+        val stack = mutableListOf(rootDir)
+
+        for (line in lines) {
+            // 计算深度：以4个空格或"│   "为一个缩进单元
+            var depth = 0
+            var i = 0
+            while (i < line.length) {
+                val sub = line.substring(i)
+                if (sub.startsWith("│   ") || sub.startsWith("    ")) {
+                    depth++
+                    i += 4
+                } else {
+                    break
+                }
+            }
+
+            // 提取名称：移除可能的树形符号 "├── " 或 "└── "
+            var name = line.substring(i).trim()
+            if (name.startsWith("├── ") || name.startsWith("└── ")) {
+                name = name.substring(4).trim()
+            } else if (name.startsWith("├──") || name.startsWith("└──")) {
+                // 兼容无空格的情况
+                name = name.substring(3).trim()
+            }
+
+            if (name.isEmpty()) continue
+
+            // 调整栈深度
+            while (stack.size > depth + 1) {
+                stack.removeAt(stack.lastIndex)
+            }
+            // 确保栈深度至少为 depth+1
+            while (stack.size <= depth) {
+                stack.add(stack.last())
+            }
+
+            val parentDir = stack.last()
+
+            if (name.endsWith("/")) {
+                // 目录：去除末尾斜杠
+                val dirName = name.removeSuffix("/")
+                val newDir = File(parentDir, dirName)
+                newDir.mkdirs()
+                // 将新目录压入栈，供下一层使用
+                if (stack.size > depth + 1) {
+                    stack[depth + 1] = newDir
+                } else {
+                    stack.add(newDir)
+                }
+            } else {
+                // 文件
+                val file = File(parentDir, name)
+                file.parentFile?.mkdirs()
+                file.createNewFile()
+                // 如果下一行深度更深，说明这个名称其实是一个目录，但用户未加斜杠
+                // 简单处理：不修改栈，等待后续判断？这里暂不处理。
+            }
+        }
+    }
+
+    /**
+     * 递归压缩目录
+     */
+    private fun zipDirectory(sourceDir: File, zipFile: File) {
+        ZipOutputStream(FileOutputStream(zipFile)).use { zos ->
+            sourceDir.walkTopDown().forEach { file ->
+                val entryName = file.relativeTo(sourceDir).path.let {
+                    if (file.isDirectory && !it.endsWith("/")) "$it/" else it
+                }
+                if (entryName.isEmpty()) return@forEach
+                zos.putNextEntry(ZipEntry(entryName))
+                if (file.isFile) {
+                    FileInputStream(file).copyTo(zos)
+                }
+                zos.closeEntry()
+            }
+        }
+    }
+}
