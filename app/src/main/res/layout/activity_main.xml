@@ -1,1 +1,37 @@
 
+<!-- 文件位置：document/app/src/main/res/layout/activity_main.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="输入文件树（目录以“/”结尾）"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/inputTree"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="top|start"
+        android:inputType="textMultiLine|textNoSuggestions"
+        android:hint="在此粘贴树形结构，例如：&#10;examine/&#10;├── .github/&#10;│   └── workflows/&#10;│       └── build.yml&#10;├── app/&#10;│   ├── build.gradle.kts&#10;│   └── src/&#10;│       └── main/&#10;│           └── AndroidManifest.xml&#10;└── gradle/&#10;    └── wrapper/&#10;        └── gradle-wrapper.properties"
+        android:textSize="14sp"
+        android:fontFamily="monospace"
+        android:background="@android:drawable/edit_text" />
+
+    <Button
+        android:id="@+id/generateBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="生成 ZIP 并保存到内部存储" />
+
+</LinearLayout>
